@@ -1,0 +1,402 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER MANAGEMENT & AUTHENTICATION
+// ============================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  roleId       String   @map("role_id")
+  isActive     Boolean  @default(true) @map("is_active")
+  lastLogin    DateTime? @map("last_login")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  role                      Role            @relation(fields: [roleId], references: [id])
+  poiFilesAsTechnician      PoiFile[]       @relation("Technician")
+  poiFilesAsStudyManager    PoiFile[]       @relation("StudyManager")
+  poiFilesAsBusinessManager PoiFile[]       @relation("BusinessManager")
+  fileHistory               FileHistory[]
+  fileComments              FileComment[]
+  fileAttachments           FileAttachment[]
+  auditLogs                 AuditLog[]
+  fileStagesCompleted       FileStage[]     @relation("CompletedBy")
+  alertsResolved            FileAlert[]     @relation("ResolvedBy")
+  alerts                    Alert[]
+  savedFilters              SavedFilter[]
+  preferences               UserPreference?
+
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String   @map("role_id")
+  permissionId String   @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================
+// ORGANIZATION STRUCTURE
+// ============================================
+
+model Client {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  code         String   @unique
+  contactEmail String?  @map("contact_email")
+  contactPhone String?  @map("contact_phone")
+  isActive     Boolean  @default(true) @map("is_active")
+  metadata     Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  projects Project[]
+
+  @@map("clients")
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  clientId    String?   @map("client_id")
+  name        String
+  code        String    @unique
+  description String?
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  status      String    @default("ACTIVE")
+  metadata    Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  client   Client?   @relation(fields: [clientId], references: [id])
+  poiFiles PoiFile[]
+
+  @@map("projects")
+}
+
+model Region {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  code           String   @unique
+  department     String?
+  geographicData Json?    @map("geographic_data")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  poiFiles PoiFile[]
+
+  @@map("regions")
+}
+
+// ============================================
+// POI FILE MANAGEMENT
+// ============================================
+
+model PoiFile {
+  id                     String    @id @default(uuid())
+  fileNumber             String    @unique @map("file_number")
+  projectId              String    @map("project_id")
+  regionId               String    @map("region_id")
+  technicianId           String?   @map("technician_id")
+  studyManagerId         String?   @map("study_manager_id")
+  businessManagerId      String?   @map("business_manager_id")
+  currentStage           Int       @default(1) @map("current_stage")
+  status                 String    @default("PENDING")
+  receptionDate          DateTime? @map("reception_date")
+  launchDate             DateTime? @map("launch_date")
+  validationDate         DateTime? @map("validation_date")
+  sendingDate            DateTime? @map("sending_date")
+  closingDate            DateTime? @map("closing_date")
+  expectedCompletionDate DateTime? @map("expected_completion_date")
+  notes                  String?
+  customFields           Json?     @map("custom_fields")
+  isPriority             Boolean   @default(false) @map("is_priority")
+  hasBlockers            Boolean   @default(false) @map("has_blockers")
+  isNonCompliant         Boolean   @default(false) @map("is_non_compliant")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  project          Project          @relation(fields: [projectId], references: [id])
+  region           Region           @relation(fields: [regionId], references: [id])
+  technician       User?            @relation("Technician", fields: [technicianId], references: [id])
+  studyManager     User?            @relation("StudyManager", fields: [studyManagerId], references: [id])
+  businessManager  User?            @relation("BusinessManager", fields: [businessManagerId], references: [id])
+  fileStages       FileStage[]
+  fileHistory      FileHistory[]
+  fileComments     FileComment[]
+  fileAttachments  FileAttachment[]
+  fileAlerts       FileAlert[]
+  alerts           Alert[]
+
+  @@index([projectId])
+  @@index([regionId])
+  @@index([status])
+  @@index([currentStage])
+  @@index([technicianId])
+  @@index([studyManagerId])
+  @@index([businessManagerId])
+  @@index([receptionDate])
+  @@index([expectedCompletionDate])
+  @@map("poi_files")
+}
+
+model Stage {
+  id                     String   @id @default(uuid())
+  stageNumber            Int      @unique @map("stage_number")
+  name                   String
+  description            String?
+  expectedDurationDays   Int?     @map("expected_duration_days")
+  validationRules        Json?    @map("validation_rules")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  fileStages FileStage[]
+
+  @@map("stages")
+}
+
+model FileStage {
+  id             String    @id @default(uuid())
+  poiFileId      String    @map("poi_file_id")
+  stageId        String    @map("stage_id")
+  startedAt      DateTime? @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  completedBy    String?   @map("completed_by")
+  status         String    @default("NOT_STARTED")
+  notes          String?
+  validationData Json?     @map("validation_data")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  poiFile       PoiFile @relation(fields: [poiFileId], references: [id], onDelete: Cascade)
+  stage         Stage   @relation(fields: [stageId], references: [id])
+  completedByUser User? @relation("CompletedBy", fields: [completedBy], references: [id])
+
+  @@index([poiFileId])
+  @@index([stageId])
+  @@map("file_stages")
+}
+
+// ============================================
+// TRACKING & AUDIT
+// ============================================
+
+model FileHistory {
+  id          String   @id @default(uuid())
+  poiFileId   String   @map("poi_file_id")
+  userId      String   @map("user_id")
+  action      String
+  description String?
+  oldValues   Json?    @map("old_values")
+  newValues   Json?    @map("new_values")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  poiFile PoiFile @relation(fields: [poiFileId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([poiFileId, createdAt])
+  @@map("file_history")
+}
+
+model FileComment {
+  id         String   @id @default(uuid())
+  poiFileId  String   @map("poi_file_id")
+  userId     String   @map("user_id")
+  comment    String
+  isInternal Boolean  @default(true) @map("is_internal")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  poiFile PoiFile @relation(fields: [poiFileId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([poiFileId])
+  @@map("file_comments")
+}
+
+model FileAttachment {
+  id         String   @id @default(uuid())
+  poiFileId  String   @map("poi_file_id")
+  uploadedBy String   @map("uploaded_by")
+  filename   String
+  filePath   String   @map("file_path")
+  fileType   String   @map("file_type")
+  fileSize   Int      @map("file_size")
+  category   String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  poiFile        PoiFile @relation(fields: [poiFileId], references: [id], onDelete: Cascade)
+  uploadedByUser User    @relation(fields: [uploadedBy], references: [id])
+
+  @@index([poiFileId])
+  @@map("file_attachments")
+}
+
+model FileAlert {
+  id         String    @id @default(uuid())
+  poiFileId  String    @map("poi_file_id")
+  alertType  String    @map("alert_type")
+  severity   String
+  message    String
+  metadata   Json?
+  isResolved Boolean   @default(false) @map("is_resolved")
+  resolvedBy String?   @map("resolved_by")
+  resolvedAt DateTime? @map("resolved_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  poiFile          PoiFile @relation(fields: [poiFileId], references: [id], onDelete: Cascade)
+  resolvedByUser   User?   @relation("ResolvedBy", fields: [resolvedBy], references: [id])
+
+  @@index([poiFileId])
+  @@index([isResolved])
+  @@map("file_alerts")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?  @map("user_id")
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  details      Json?
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([resourceType, resourceId])
+  @@map("audit_logs")
+}
+
+// ============================================
+// USER NOTIFICATIONS
+// ============================================
+
+model Alert {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  type        AlertType
+  title       String
+  message     String
+  poiFileId   String?   @map("poi_file_id")
+  isRead      Boolean   @default(false) @map("is_read")
+  readAt      DateTime? @map("read_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  poiFile PoiFile? @relation(fields: [poiFileId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("alerts")
+}
+
+enum AlertType {
+  FILE_ASSIGNED
+  FILE_STATUS_CHANGED
+  FILE_STAGE_COMPLETED
+  DEADLINE_APPROACHING
+  DEADLINE_OVERDUE
+  COMMENT_ADDED
+  ATTACHMENT_ADDED
+  PRIORITY_SET
+  GENERAL
+}
+
+// ============================================
+// SEARCH & FILTERING
+// ============================================
+
+model SavedFilter {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  entity    String
+  filters   Json
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, entity])
+  @@map("saved_filters")
+}
+
+// ============================================
+// USER PREFERENCES & SYSTEM SETTINGS
+// ============================================
+
+model UserPreference {
+  id            String   @id @default(uuid())
+  userId        String   @unique @map("user_id")
+  theme         String   @default("light")
+  language      String   @default("en")
+  dateFormat    String   @default("DD/MM/YYYY") @map("date_format")
+  timezone      String   @default("Europe/Paris")
+  notifications Json     @default("{\"email\":true,\"inApp\":true,\"fileAssigned\":true,\"statusChanged\":true,\"deadlineApproaching\":true,\"comments\":true}")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string")
+  label     String
+  group     String   @default("general")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([group])
+  @@map("system_settings")
+}

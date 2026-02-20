@@ -1,0 +1,99 @@
+.activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 45px;
+    width: 2px;
+    height: calc(100% + 0.5rem);
+    background: #e5e7eb;
+}
+
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    color: white;
+    z-index: 1;
+}
+
+.timeline-content {
+    flex: 1;
+    padding-bottom: 0.5rem;
+}
+
+.timeline-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.timeline-user {
+    font-weight: 600;
+    color: #111827;
+}
+
+.timeline-action {
+    color: #6b7280;
+    text-transform: capitalize;
+}
+
+.timeline-description {
+    color: #374151;
+    margin: 0.5rem 0;
+    font-size: 0.875rem;
+}
+
+.timeline-time {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.change-details {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    border-left: 3px solid #3b82f6;
+}
+
+.old-value {
+    color: #ef4444;
+    margin-bottom: 0.25rem;
+}
+
+.new-value {
+    color: #10b981;
+}
+
+.timeline-loading,
+.timeline-empty {
+    text-align: center;
+    padding: 2rem;
+    color: #9ca3af;
+}
+
+.timeline-empty p {
+    margin: 0;
+    font-size: 0.875rem;
+}
