@@ -113,7 +113,7 @@ router.get(
  */
 router.post(
     '/:id/comments',
-    authorize('poi_files', 'create'),
+    authorize('poi_files', 'read'),
     FileCommentController.createCommentValidation,
     FileCommentController.createComment
 );
@@ -137,7 +137,7 @@ router.get(
  */
 router.post(
     '/:id/attachments',
-    authorize('poi_files', 'create'),
+    authorize('poi_files', 'read'),
     upload.single('file'),
     handleUploadError,
     FileAttachmentController.uploadAttachmentValidation,

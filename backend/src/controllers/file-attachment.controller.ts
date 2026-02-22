@@ -3,6 +3,7 @@ import { param, validationResult } from 'express-validator';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 import fs from 'fs';
+import alertService from '../services/alert.service';
 
 export class FileAttachmentController {
     /**
@@ -105,6 +106,11 @@ export class FileAttachmentController {
             });
 
             res.status(201).json(attachment);
+
+            // Notify assigned users about the new attachment (fire-and-forget)
+            alertService.notifyAttachmentAdded(id, req.user!.userId).catch(err =>
+                console.error('Failed to send attachment notification:', err)
+            );
         } catch (error) {
             console.error('Upload attachment error:', error);
             // Delete file if database operation failed

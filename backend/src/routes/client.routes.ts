@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import ClientController from '../controllers/client.controller';
-import { authorize } from '../middleware/auth.middleware';
+import { authenticate, authorize } from '../middleware/auth.middleware';
 
 const router = Router();
+
+// All routes require authentication
+router.use(authenticate);
 
 // Get all clients
 router.get('/', authorize('clients', 'read'), ClientController.list);

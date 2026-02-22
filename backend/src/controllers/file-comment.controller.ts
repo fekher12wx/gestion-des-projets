@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
+import alertService from '../services/alert.service';
 
 export class FileCommentController {
     /**
@@ -108,6 +109,11 @@ export class FileCommentController {
             });
 
             res.status(201).json(newComment);
+
+            // Notify assigned users about the new comment (fire-and-forget)
+            alertService.notifyCommentAdded(id, req.user!.userId).catch(err =>
+                console.error('Failed to send comment notification:', err)
+            );
         } catch (error) {
             console.error('Create comment error:', error);
             res.status(500).json({ error: 'Failed to create comment' });

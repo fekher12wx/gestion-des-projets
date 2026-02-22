@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
+import alertService from '../services/alert.service';
 
 export class PoiFileController {
     /**
@@ -396,6 +397,25 @@ export class PoiFileController {
                 message: 'POI file created successfully',
                 poiFile,
             });
+
+            // Fire-and-forget notifications for assigned users
+            const assignedUsers = [
+                { id: technicianId },
+                { id: studyManagerId },
+                { id: businessManagerId },
+            ].filter(u => u.id);
+
+            for (const user of assignedUsers) {
+                alertService.notifyFileAssigned(poiFile.id, user.id!, req.user?.userId).catch(err =>
+                    console.error('Failed to send assignment notification:', err)
+                );
+            }
+
+            if (isPriority) {
+                alertService.notifyPrioritySet(poiFile.id).catch(err =>
+                    console.error('Failed to send priority notification:', err)
+                );
+            }
         } catch (error) {
             console.error('Create POI file error:', error);
             console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
@@ -511,6 +531,31 @@ export class PoiFileController {
                 message: 'POI file updated successfully',
                 poiFile: updatedFile,
             });
+
+            // Fire-and-forget notifications for relevant changes
+            // Status change notification
+            if (updateData.status && updateData.status !== existingFile.status) {
+                alertService.notifyStatusChange(id, updateData.status, existingFile.status).catch(err =>
+                    console.error('Failed to send status change notification:', err)
+                );
+            }
+
+            // Assignment change notifications
+            const assignmentFields = ['technicianId', 'studyManagerId', 'businessManagerId'] as const;
+            for (const field of assignmentFields) {
+                if (updateData[field] && updateData[field] !== (existingFile as any)[field]) {
+                    alertService.notifyFileAssigned(id, updateData[field], req.user?.userId).catch(err =>
+                        console.error('Failed to send assignment notification:', err)
+                    );
+                }
+            }
+
+            // Priority set notification
+            if (updateData.isPriority === true && !existingFile.isPriority) {
+                alertService.notifyPrioritySet(id).catch(err =>
+                    console.error('Failed to send priority notification:', err)
+                );
+            }
         } catch (error) {
             console.error('Update POI file error:', error);
             res.status(500).json({ error: 'Failed to update POI file' });
@@ -635,6 +680,18 @@ export class PoiFileController {
             });
 
             res.json({ message: 'Stage advanced successfully', currentStage: nextStage });
+
+            // Notify assigned users about stage completion (fire-and-forget)
+            alertService.notifyStageCompleted(id, poiFile.currentStage).catch(err =>
+                console.error('Failed to send stage completion notification:', err)
+            );
+
+            // If file is completed (stage 6), also send status change notification
+            if (nextStage === 6) {
+                alertService.notifyStatusChange(id, 'COMPLETED', poiFile.status).catch(err =>
+                    console.error('Failed to send completion notification:', err)
+                );
+            }
         } catch (error) {
             console.error('Advance stage error:', error);
             res.status(500).json({ error: 'Failed to advance stage' });
