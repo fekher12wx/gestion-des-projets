@@ -21,10 +21,12 @@ model User {
   firstName    String   @map("first_name")
   lastName     String   @map("last_name")
   roleId       String   @map("role_id")
-  isActive     Boolean  @default(true) @map("is_active")
-  lastLogin    DateTime? @map("last_login")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  isActive         Boolean  @default(true) @map("is_active")
+  canEdit          Boolean  @default(false) @map("can_edit")
+  allowedSecteurs  String[] @default([]) @map("allowed_secteurs")
+  lastLogin        DateTime? @map("last_login")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   role                      Role            @relation(fields: [roleId], references: [id])
   poiFilesAsTechnician      PoiFile[]       @relation("Technician")
@@ -399,4 +401,50 @@ model SystemSetting {
 
   @@index([group])
   @@map("system_settings")
+}
+
+// ============================================
+// SUIVI ÉTUDES - Admin Tracking Table
+// ============================================
+
+model SuiviEtude {
+  id                String   @id @default(uuid())
+  secteur           String   @unique
+  nbDossiers        Int      @default(0) @map("nb_dossiers")
+  dreKo             Int      @default(0) @map("dre_ko")
+  vtAFaire          Int      @default(0) @map("vt_a_faire")
+  aRemonter         Int      @default(0) @map("a_remonter")
+  retourVt          Int      @default(0) @map("retour_vt")
+  dossAReprendre    Int      @default(0) @map("doss_a_reprendre")
+  dossAMonter       Int      @default(0) @map("doss_a_monter")
+  attInfosCafRef    Int      @default(0) @map("att_infos_caf_ref")
+  attDevisOrangeRip Int      @default(0) @map("att_devis_orange_rip")
+  attDevisClient    Int      @default(0) @map("att_devis_client")
+  attTravauxClient  Int      @default(0) @map("att_travaux_client")
+  attPv             Int      @default(0) @map("att_pv")
+  attDta            Int      @default(0) @map("att_dta")
+  attComacCafft     Int      @default(0) @map("att_comac_cafft")
+  attMajSi          Int      @default(0) @map("att_maj_si")
+  poiEnTravaux      Int      @default(0) @map("poi_en_travaux")
+  atRetourDoe       Int      @default(0) @map("at_retour_doe")
+  recolAFaire       Int      @default(0) @map("recol_a_faire")
+  etat5             Int      @default(0) @map("etat_5")
+  dossierMainBe     Int      @default(0) @map("dossier_main_be")
+  dossierMainChaff  Int      @default(0) @map("dossier_main_chaff")
+  columnConfig      Json?    @map("column_config")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("suivi_etudes")
+}
+
+model DossierEtude {
+  id            String    @id @default(uuid())
+  secteur       String
+  data          Json      @default("{}")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([secteur])
+  @@map("dossier_etudes")
 }

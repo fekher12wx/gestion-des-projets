@@ -1,93 +1,35 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
-import { authenticate, authorize } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// All routes require authentication
-router.use(authenticate);
+/**
+ * @route   GET /api/v1/users/roles
+ * @desc    List available roles (non-admin) — public for registration
+ * @access  Public
+ */
+router.get('/roles', UserController.getRoles);
 
 /**
  * @route   GET /api/v1/users
- * @desc    Get all users with pagination and filtering
- * @access  Private (Admin only)
+ * @desc    List all users (admin only)
+ * @access  Private (Admin)
  */
-router.get(
-    '/',
-    authorize('users', 'read'),
-    UserController.listValidation,
-    UserController.list
-);
-
-/**
- * @route   GET /api/v1/users/:id
- * @desc    Get user by ID
- * @access  Private (Admin only)
- */
-router.get(
-    '/:id',
-    authorize('users', 'read'),
-    UserController.getByIdValidation,
-    UserController.getById
-);
+router.get('/', authenticate, UserController.getAll);
 
 /**
  * @route   POST /api/v1/users
- * @desc    Create new user
- * @access  Private (Admin only)
+ * @desc    Create a new user (admin only)
+ * @access  Private (Admin)
  */
-router.post(
-    '/',
-    authorize('users', 'create'),
-    UserController.createValidation,
-    UserController.create
-);
+router.post('/', authenticate, UserController.createUser);
 
 /**
- * @route   PUT /api/v1/users/:id
- * @desc    Update user
- * @access  Private (Admin only)
+ * @route   PUT /api/v1/users/:id/permissions
+ * @desc    Update user permissions
+ * @access  Private (Admin)
  */
-router.put(
-    '/:id',
-    authorize('users', 'update'),
-    UserController.updateValidation,
-    UserController.update
-);
-
-/**
- * @route   DELETE /api/v1/users/:id
- * @desc    Delete user (soft delete)
- * @access  Private (Admin only)
- */
-router.delete(
-    '/:id',
-    authorize('users', 'delete'),
-    UserController.deleteValidation,
-    UserController.delete
-);
-
-/**
- * @route   PUT /api/v1/users/:id/password
- * @desc    Update user password
- * @access  Private (Own account or Admin)
- */
-router.put(
-    '/:id/password',
-    UserController.updatePasswordValidation,
-    UserController.updatePassword
-);
-
-/**
- * @route   PUT /api/v1/users/:id/role
- * @desc    Assign role to user
- * @access  Private (Admin only)
- */
-router.put(
-    '/:id/role',
-    authorize('users', 'update'),
-    UserController.assignRoleValidation,
-    UserController.assignRole
-);
+router.put('/:id/permissions', authenticate, UserController.updatePermissions);
 
 export default router;

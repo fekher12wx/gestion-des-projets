@@ -7,6 +7,8 @@ export interface User {
     lastName: string;
     roleId: string;
     isActive: boolean;
+    canEdit: boolean;
+    allowedSecteurs: string[];
     lastLogin?: string;
     createdAt?: string;
     updatedAt?: string;

@@ -1,41 +1,30 @@
 import apiClient from './api';
-import type { User, PaginatedResponse, UserFilters } from '../types';
+import type { User } from '../types';
+
+export interface RoleOption {
+    id: string;
+    name: string;
+    description: string | null;
+}
 
 class UserService {
-    async getUsers(filters: UserFilters = {}): Promise<{ users: User[], pagination: any }> {
-        const params = new URLSearchParams();
-
-        if (filters.page) params.append('page', filters.page.toString());
-        if (filters.limit) params.append('limit', filters.limit.toString());
-        if (filters.search) params.append('search', filters.search);
-        if (filters.roleId) params.append('roleId', filters.roleId);
-        if (filters.isActive !== undefined) params.append('isActive', filters.isActive.toString());
-
-        const response = await apiClient.get<{ users: User[], pagination: any }>(`/users?${params.toString()}`);
-        return response.data;
+    async getAll(): Promise<User[]> {
+        const response = await apiClient.get<{ users: User[] }>('/users');
+        return response.data.users;
     }
 
-    async getUser(id: string): Promise<User> {
-        const response = await apiClient.get<{ user: User }>(`/users/${id}`);
-        return response.data.user;
+    async getRoles(): Promise<RoleOption[]> {
+        const response = await apiClient.get<{ roles: RoleOption[] }>('/users/roles');
+        return response.data.roles;
     }
 
-    async createUser(data: Partial<User> & { password?: string }): Promise<User> {
+    async createUser(data: { email: string; password: string; firstName: string; lastName: string; roleId: string }): Promise<User> {
         const response = await apiClient.post<{ user: User }>('/users', data);
         return response.data.user;
     }
 
-    async updateUser(id: string, data: Partial<User>): Promise<User> {
-        const response = await apiClient.put<{ user: User }>(`/users/${id}`, data);
-        return response.data.user;
-    }
-
-    async deleteUser(id: string): Promise<void> {
-        await apiClient.delete(`/users/${id}`);
-    }
-
-    async assignRole(id: string, roleId: string): Promise<User> {
-        const response = await apiClient.put<{ user: User }>(`/users/${id}/role`, { roleId });
+    async updatePermissions(id: string, data: { canEdit?: boolean; allowedSecteurs?: string[] }): Promise<User> {
+        const response = await apiClient.put<{ user: User }>(`/users/${id}/permissions`, data);
         return response.data.user;
     }
 }

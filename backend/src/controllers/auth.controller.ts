@@ -70,6 +70,8 @@ export class AuthController {
                     lastName: true,
                     roleId: true,
                     isActive: true,
+                    canEdit: true,
+                    allowedSecteurs: true,
                     createdAt: true,
                     role: {
                         select: {
@@ -240,6 +242,8 @@ export class AuthController {
                     lastName: true,
                     roleId: true,
                     isActive: true,
+                    canEdit: true,
+                    allowedSecteurs: true,
                     lastLogin: true,
                     createdAt: true,
                     updatedAt: true,
@@ -249,8 +253,13 @@ export class AuthController {
                             name: true,
                             description: true,
                             rolePermissions: {
-                                include: {
-                                    permission: true,
+                                select: {
+                                    permission: {
+                                        select: {
+                                            resource: true,
+                                            action: true,
+                                        },
+                                    },
                                 },
                             },
                         },

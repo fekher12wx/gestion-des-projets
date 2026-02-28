@@ -6,13 +6,17 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
-    register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+    register: (email: string, password: string, firstName: string, lastName: string, roleId?: string) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
+    isAdmin: boolean;
+    canEdit: boolean;
+    allowedSecteurs: string[];
     hasPermission: (resource: string, action: string) => boolean;
     canCreate: (resource: string) => boolean;
     canUpdate: (resource: string) => boolean;
     canDelete: (resource: string) => boolean;
+    refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,8 +51,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(response.user);
     };
 
-    const register = async (email: string, password: string, firstName: string, lastName: string) => {
-        const response = await authService.register({ email, password, firstName, lastName });
+    const register = async (email: string, password: string, firstName: string, lastName: string, roleId?: string) => {
+        const response = await authService.register({ email, password, firstName, lastName, roleId });
         setUser(response.user);
     };
 
@@ -57,13 +61,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null);
     };
 
+    const refreshUser = () => {
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+            setUser(storedUser);
+        }
+    };
+
+    const isAdmin = !!(user?.role?.name && ['Admin', 'admin', 'ADMIN'].includes(user.role.name));
+
     const hasPermission = (resource: string, action: string): boolean => {
         if (!user || !user.role) return false;
-        // Admin has all permissions
-        if (user.role.name === 'Admin' || user.role.name === 'admin' || user.role.name === 'ADMIN') {
-            return true;
-        }
-        // Check actual permissions from the backend
+        if (isAdmin) return true;
         if (!user.permissions || !Array.isArray(user.permissions)) return false;
         return user.permissions.some(
             (p) => p.resource === resource && p.action === action
@@ -89,11 +98,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         register,
         logout,
         isAuthenticated: !!user,
+        isAdmin,
+        canEdit: isAdmin || (user?.canEdit ?? false),
+        allowedSecteurs: isAdmin ? [] : (user?.allowedSecteurs ?? []),
         hasPermission,
         canCreate,
         canUpdate,
         canDelete,
+        refreshUser,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

@@ -3,16 +3,9 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import SecteurDetailPage from './pages/admin/SecteurDetailPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
-import PoiFilesPage from './pages/PoiFilesPage';
-import MyAssignmentsPage from './pages/MyAssignmentsPage';
-import ClientManagementPage from './pages/ClientManagementPage';
-import ProjectManagementPage from './pages/ProjectManagementPage';
-import RegionManagementPage from './pages/RegionManagementPage';
-import AlertsPage from './pages/AlertsPage';
-import ReportsPage from './pages/ReportsPage';
-import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
@@ -23,85 +16,33 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route
             path="/"
+            element={<Navigate to="/admin/dashboard" replace />}
+          />
+          <Route
+            path="/admin/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/secteur/:secteur"
+            element={
+              <ProtectedRoute>
+                <SecteurDetailPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="/admin/users"
             element={
-              <ProtectedRoute requiredPermission={{ resource: 'users', action: 'read' }}>
+              <ProtectedRoute>
                 <UserManagementPage />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/poi-files"
-            element={
-              <ProtectedRoute>
-                <PoiFilesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-assignments"
-            element={
-              <ProtectedRoute>
-                <MyAssignmentsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/clients"
-            element={
-              <ProtectedRoute requiredPermission={{ resource: 'clients', action: 'read' }}>
-                <ClientManagementPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/projects"
-            element={
-              <ProtectedRoute requiredPermission={{ resource: 'projects', action: 'read' }}>
-                <ProjectManagementPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/regions"
-            element={
-              <ProtectedRoute requiredPermission={{ resource: 'regions', action: 'read' }}>
-                <RegionManagementPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/alerts"
-            element={
-              <ProtectedRoute>
-                <AlertsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute requiredPermission={{ resource: 'reports', action: 'read' }}>
-                <ReportsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute requiredPermission={{ resource: 'settings', action: 'read' }}>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import userService from '../../services/user.service';
+import type { RoleOption } from '../../services/user.service';
 import './AuthPages.css';
 
 const RegisterPage: React.FC = () => {
@@ -9,10 +11,16 @@ const RegisterPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [roleId, setRoleId] = useState('');
+    const [roles, setRoles] = useState<RoleOption[]>([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { register } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        userService.getRoles().then(setRoles).catch(console.error);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,10 +36,15 @@ const RegisterPage: React.FC = () => {
             return;
         }
 
+        if (!roleId) {
+            setError('Please select a role');
+            return;
+        }
+
         setLoading(true);
 
         try {
-            await register(email, password, firstName, lastName);
+            await register(email, password, firstName, lastName, roleId);
             navigate('/');
         } catch (err: any) {
             setError(err.response?.data?.error || 'Registration failed. Please try again.');
@@ -103,6 +116,22 @@ const RegisterPage: React.FC = () => {
                             required
                             autoComplete="email"
                         />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="role">Role</label>
+                        <select
+                            id="role"
+                            value={roleId}
+                            onChange={(e) => setRoleId(e.target.value)}
+                            required
+                            className="auth-select"
+                        >
+                            <option value="">— Select a role —</option>
+                            {roles.map((r) => (
+                                <option key={r.id} value={r.id}>{r.name}</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="form-group">

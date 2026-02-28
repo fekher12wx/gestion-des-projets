@@ -88,7 +88,8 @@
   /* Zinc-800 */
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   padding: 0.75rem 1rem;
   border: 1px solid #d4d4d8;
   /* Zinc-300 */
@@ -97,6 +98,11 @@
   transition: all 0.2s ease;
   background: white;
   color: #18181b;
+}
+
+.form-group select {
+  cursor: pointer;
+  appearance: auto;
 }
 
 .form-group input:focus {
