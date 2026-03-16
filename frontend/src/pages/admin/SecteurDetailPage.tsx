@@ -203,7 +203,14 @@ const SecteurDetailPage: React.FC = () => {
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
     // Column resizing
-    const [colWidths, setColWidths] = useState<Record<string, number>>({});
+    // Load persisted column widths from localStorage
+    const storageKey = `colWidths_${sectorName}`;
+    const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
+        try {
+            const saved = localStorage.getItem(storageKey);
+            return saved ? JSON.parse(saved) : {};
+        } catch { return {}; }
+    });
     const resizingRef = useRef<{ key: string; startX: number; startW: number } | null>(null);
 
     const onResizeMouseDown = useCallback((e: React.MouseEvent, colKey: string) => {
@@ -215,9 +222,14 @@ const SecteurDetailPage: React.FC = () => {
 
         const onMouseMove = (ev: MouseEvent) => {
             if (!resizingRef.current) return;
-            const diff = ev.clientX - resizingRef.current.startX;
-            const newW = Math.max(50, resizingRef.current.startW + diff);
-            setColWidths(prev => ({ ...prev, [resizingRef.current!.key]: newW }));
+            const { key, startX, startW } = resizingRef.current;
+            const diff = ev.clientX - startX;
+            const newW = Math.max(50, startW + diff);
+            setColWidths(prev => {
+                const next = { ...prev, [key]: newW };
+                try { localStorage.setItem(`colWidths_${sectorName}`, JSON.stringify(next)); } catch { }
+                return next;
+            });
         };
         const onMouseUp = () => {
             resizingRef.current = null;
@@ -519,7 +531,7 @@ const SecteurDetailPage: React.FC = () => {
             {/* Header */}
             <div className="secteur-detail-header">
                 <div className="header-left">
-                    <span className="back-link" onClick={() => navigate('/admin/dashboard')}>
+                    <span className="back-link" onClick={() => navigate('/admin/choose-section')}>
                         {t('common.back_dashboard')}
                     </span>
                     <h1>📋 {sectorName}</h1>
@@ -566,7 +578,18 @@ const SecteurDetailPage: React.FC = () => {
             <div className="vue-global-section">
                 <h2>{t('sector.dossiers_title')} — {sectorName}</h2>
                 <div className="excel-table-wrapper">
-                    <table className="excel-table" id="dossier-table" style={{ tableLayout: 'fixed' }}>
+                    <table className="excel-table" id="dossier-table" style={{
+                        tableLayout: 'fixed',
+                        width: (() => {
+                            const DEFAULT_W = 150;
+                            const TEXTAREA_W = 300;
+                            const ACTION_W = 80;
+                            const total = columns.reduce((sum, col) => {
+                                return sum + (colWidths[col.key] || (col.type === 'textarea' ? TEXTAREA_W : DEFAULT_W));
+                            }, canEdit ? ACTION_W : 0);
+                            return `${Math.max(total, 100)}px`;
+                        })(),
+                    }}>
                         <thead>
                             <tr>
                                 {columns.map((col) => (
@@ -577,7 +600,7 @@ const SecteurDetailPage: React.FC = () => {
                                             cursor: 'pointer',
                                             userSelect: 'none',
                                             position: 'relative',
-                                            width: colWidths[col.key] ? `${colWidths[col.key]}px` : (col.type === 'textarea' ? '300px' : undefined),
+                                            width: `${colWidths[col.key] || (col.type === 'textarea' ? 300 : 150)}px`,
                                             minWidth: '50px',
                                         }}
                                     >

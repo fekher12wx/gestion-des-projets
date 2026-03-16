@@ -7,6 +7,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import SecteurDetailPage from './pages/admin/SecteurDetailPage';
+import ChooseSectionPage from './pages/auth/ChooseSectionPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 
 function App() {
@@ -27,6 +28,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AdminDashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/choose-section"
+                element={
+                  <ProtectedRoute>
+                    <ChooseSectionPage />
                   </ProtectedRoute>
                 }
               />

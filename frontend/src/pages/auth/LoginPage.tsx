@@ -10,7 +10,6 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [showChoice, setShowChoice] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
     const { t } = useLanguage();
@@ -22,19 +21,11 @@ const LoginPage: React.FC = () => {
 
         try {
             await login(email, password);
-            setShowChoice(true);
+            navigate('/admin/choose-section');
         } catch (err: any) {
             setError(err.response?.data?.error || t('login.failed'));
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleChoice = (choice: 'rcc' | 'bein') => {
-        if (choice === 'rcc') {
-            navigate('/admin/dashboard');
-        } else {
-            navigate('/admin/secteur/BEIN');
         }
     };
 
@@ -113,28 +104,6 @@ const LoginPage: React.FC = () => {
                     </p>
                 </div>
             </div>
-
-            {/* RCC / BEIN Choice Popup */}
-            {showChoice && (
-                <div className="choice-overlay">
-                    <div className="choice-card">
-                        <h2 className="choice-title">{t('login.choose_section')}</h2>
-                        <p className="choice-subtitle">{t('login.choose_subtitle')}</p>
-                        <div className="choice-buttons">
-                            <button className="choice-btn choice-rcc" onClick={() => handleChoice('rcc')}>
-                                <span className="choice-icon">📊</span>
-                                <span className="choice-label">RCC</span>
-                                <span className="choice-desc">{t('login.rcc_desc')}</span>
-                            </button>
-                            <button className="choice-btn choice-bein" onClick={() => handleChoice('bein')}>
-                                <span className="choice-icon">📋</span>
-                                <span className="choice-label">BEIN</span>
-                                <span className="choice-desc">{t('login.bein_desc')}</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

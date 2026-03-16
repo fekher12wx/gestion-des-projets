@@ -673,3 +673,29 @@
     white-space: normal;
     overflow: visible;
 }
+
+/* ─── Table Wrapper Scrollbar ── */
+.excel-table-wrapper {
+    overflow-x: auto;
+    overflow-y: visible;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+.excel-table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.excel-table-wrapper::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+.excel-table-wrapper::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.excel-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
