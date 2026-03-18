@@ -94,8 +94,20 @@ const ETAT_OPTIONS = [
     '16 DOSSIER PAYE',
 ];
 
+function isSelectColumn(col: ColumnConfig): boolean {
+    return col.type === 'select' || col.key === 'etat' || col.label.toLowerCase() === 'etat';
+}
+
+// Keep backward compatibility
 function isEtatColumn(col: ColumnConfig): boolean {
     return col.key === 'etat' || col.label.toLowerCase() === 'etat';
+}
+
+// Get dropdown options for a column: use column's own options, or fall back to ETAT_OPTIONS for legacy etat columns
+function getColumnOptions(col: ColumnConfig): string[] {
+    if (col.options && col.options.length > 0) return col.options;
+    if (isEtatColumn(col)) return ETAT_OPTIONS;
+    return [];
 }
 
 // ETAT color map — exact hex colors from Excel conditional formatting rules
@@ -749,7 +761,7 @@ const SecteurDetailPage: React.FC = () => {
                                                     return (
                                                         <td key={col.key} title={String(getDataValue(d.data, col) || '')}>
                                                             {isEditing && canEdit ? (
-                                                                isEtatColumn(col) ? (
+                                                                isSelectColumn(col) ? (
                                                                     <select
                                                                         className="inline-etat-select"
                                                                         value={inlineEditValue}
@@ -759,7 +771,7 @@ const SecteurDetailPage: React.FC = () => {
                                                                         style={{ maxWidth: '180px', fontSize: '0.78rem', padding: '2px 4px', borderRadius: '4px', border: '1.5px solid #1976d2' }}
                                                                     >
                                                                         <option value="">— Sélectionner —</option>
-                                                                        {ETAT_OPTIONS.map((opt) => (
+                                                                        {getColumnOptions(col).map((opt) => (
                                                                             <option key={opt} value={opt}>{opt}</option>
                                                                         ))}
                                                                     </select>
@@ -866,14 +878,14 @@ const SecteurDetailPage: React.FC = () => {
                                         <label htmlFor={col.key}>
                                             {col.label} {col.required && '*'}
                                         </label>
-                                        {isEtatColumn(col) ? (
+                                        {isSelectColumn(col) ? (
                                             <select
                                                 id={col.key}
                                                 value={formData[col.key] || ''}
                                                 onChange={(e) => handleFormChange(col.key, e.target.value)}
                                             >
                                                 <option value="">{t('common.select')}</option>
-                                                {ETAT_OPTIONS.map((opt) => (
+                                                {getColumnOptions(col).map((opt) => (
                                                     <option key={opt} value={opt}>{opt}</option>
                                                 ))}
                                             </select>
@@ -952,7 +964,25 @@ const SecteurDetailPage: React.FC = () => {
                                             <option value="date">{t('sector.col_type_date')}</option>
                                             <option value="number">{t('sector.col_type_number')}</option>
                                             <option value="textarea">{t('sector.col_type_textarea')}</option>
+                                            <option value="select">Liste déroulante</option>
                                         </select>
+                                        {col.type === 'select' && (
+                                            <textarea
+                                                className="col-options-input"
+                                                placeholder="Options (une par ligne)"
+                                                value={(col.options || []).join('\n')}
+                                                onChange={(e) => {
+                                                    const opts = e.target.value.split('\n');
+                                                    setEditColumns((prev) => {
+                                                        const updated = [...prev];
+                                                        updated[index] = { ...updated[index], options: opts };
+                                                        return updated;
+                                                    });
+                                                }}
+                                                rows={4}
+                                                style={{ fontSize: '0.72rem', padding: '4px', borderRadius: '4px', border: '1.5px solid #ddd', width: '100%', minWidth: '150px', resize: 'vertical', marginTop: '4px' }}
+                                            />
+                                        )}
                                         <label className="col-required-label">
                                             <input
                                                 type="checkbox"

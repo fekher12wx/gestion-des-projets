@@ -3,8 +3,9 @@ import apiClient from './api';
 export interface ColumnConfig {
     key: string;
     label: string;
-    type: 'text' | 'date' | 'textarea' | 'number';
+    type: 'text' | 'date' | 'textarea' | 'number' | 'select';
     required?: boolean;
+    options?: string[];
 }
 
 export interface DossierEtude {
