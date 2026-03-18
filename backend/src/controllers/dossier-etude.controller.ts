@@ -129,7 +129,7 @@ export class DossierEtudeController {
                     where,
                     skip,
                     take: limit,
-                    orderBy: { createdAt: 'desc' },
+                    orderBy: { createdAt: 'asc' },
                 }),
                 prisma.dossierEtude.count({ where }),
             ]);

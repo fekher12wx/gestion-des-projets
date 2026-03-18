@@ -210,10 +210,14 @@ const AdminDashboardPage: React.FC = () => {
         <div className="admin-dashboard">
             {/* Header */}
             <div className="admin-dashboard-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-
-                    <img src="/logo.png" alt="Logo" style={{ height: '45px', objectFit: 'contain' }} />
-                    <h1>{t('dashboard.title')}</h1>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span className="back-link" onClick={() => navigate('/admin/choose-section')} style={{ cursor: 'pointer', color: '#fb8c00', fontSize: '0.8rem', fontWeight: 700 }}>
+                        ← Retour
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <img src="/logo.png" alt="Logo" style={{ height: '45px', objectFit: 'contain' }} />
+                        <h1>{t('dashboard.title')}</h1>
+                    </div>
                 </div>
                 <div className="header-actions">
                     <ThemeToggle />

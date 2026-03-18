@@ -70,17 +70,21 @@ function getCellValue(data: Record<string, any>, col: ColumnConfig): string {
 // ETAT dropdown options — exact values from Excel conditional formatting
 const ETAT_OPTIONS = [
     '01 VT A FAIRE',
+    '01 AT VT',
     '01.2 A REMONTER',
     '01.3 Etude CDC',
     '02 RETOUR VT',
     '03 DOSSIER A REPRENDRE',
     '04 DOSSIER A MONTER',
     '05 AT INFO CAF REF',
+    '05.1 ETU TRANSMISE',
+    '05 Dossier terminer',
     '06 AT DEVIS CLIENT',
     '07 AT TRVX CLIENT',
     '08 AT COMAC/CAPFT',
     '09 AT DEVIS ORANGE/RIP',
     '10 AT PV',
+    '10.1 ATT DT',
     '11 AT DTA',
     '12 AT MAJ SI',
     '13 ETAT 5',
@@ -97,17 +101,21 @@ function isEtatColumn(col: ColumnConfig): boolean {
 // ETAT color map — exact hex colors from Excel conditional formatting rules
 const ETAT_COLORS: Record<string, { bg: string; color: string }> = {
     '01 vt a faire': { bg: '#92D050', color: '#000' },
+    '01 at vt': { bg: '#92D050', color: '#000' },
     '01.2 a remonter': { bg: '#FFC000', color: '#000' },
     '01.3 etude cdc': { bg: '#E2EFDA', color: '#375623' },
     '02 retour vt': { bg: '#7030A0', color: '#fff' },
     '03 dossier a reprendre': { bg: '#FF6600', color: '#fff' },
     '04 dossier a monter': { bg: '#FF0000', color: '#fff' },
     '05 at info caf ref': { bg: '#BDD7EE', color: '#000' },
+    '05.1 etu transmise': { bg: '#C5E0B4', color: '#375623' },
+    '05 dossier terminer': { bg: '#548235', color: '#fff' },
     '06 at devis client': { bg: '#00B0F0', color: '#000' },
     '07 at trvx client': { bg: '#D9E2F3', color: '#000' },
     '08 at comac/capft': { bg: '#E2EFDA', color: '#000' },
     '09 at devis orange/rip': { bg: '#FFC000', color: '#000' },
     '10 at pv': { bg: '#F4B084', color: '#000' },
+    '10.1 att dt': { bg: '#E2EFDA', color: '#000' },
     '11 at dta': { bg: '#D6DCE4', color: '#000' },
     '12 at maj si': { bg: '#B4C6E7', color: '#000' },
     '13 etat 5': { bg: '#00B050', color: '#fff' },
@@ -482,9 +490,17 @@ const SecteurDetailPage: React.FC = () => {
         });
     };
 
+    const colListRef = useRef<HTMLDivElement>(null);
+
     const handleAddColumn = () => {
         const key = `col_${Date.now()}`;
         setEditColumns((prev) => [...prev, { key, label: 'Nouvelle Colonne', type: 'text', required: false }]);
+        // Auto-scroll to bottom so the newly added column is visible
+        setTimeout(() => {
+            if (colListRef.current) {
+                colListRef.current.scrollTop = colListRef.current.scrollHeight;
+            }
+        }, 50);
     };
 
     const handleRemoveColumn = (index: number) => {
@@ -587,7 +603,7 @@ const SecteurDetailPage: React.FC = () => {
             {/* Header */}
             <div className="secteur-detail-header">
                 <div className="header-left">
-                    <span className="back-link" onClick={() => navigate('/admin/choose-section')}>
+                    <span className="back-link" onClick={() => navigate(sectorName.toUpperCase() === 'BEIN' ? '/admin/choose-section' : '/admin/dashboard')}>
                         {t('common.back_dashboard')}
                     </span>
                     <h1>📋 {sectorName}</h1>
@@ -628,7 +644,7 @@ const SecteurDetailPage: React.FC = () => {
                 </div>
                 <div className="secteur-stat-card info">
                     <span className="stat-card-label">{t('sector.nb_dossiers')}</span>
-                    <span className="stat-card-value">{columns.length}</span>
+                    <span className="stat-card-value">{pagination.total}</span>
                 </div>
             </div>
 
@@ -912,7 +928,7 @@ const SecteurDetailPage: React.FC = () => {
                         <h3>{t('sector.col_modal_title')} — {sectorName}</h3>
                         <p className="col-hint">{t('sector.col_hint')}</p>
 
-                        <div className="col-list">
+                        <div className="col-list" ref={colListRef}>
                             {editColumns.map((col, index) => (
                                 <div className="col-item" key={col.key}>
                                     <div className="col-order-btns">
