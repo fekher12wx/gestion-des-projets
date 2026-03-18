@@ -208,9 +208,19 @@
     color: #43a047;
 }
 
-.user-role-badge.viewer {
+.user-role-badge.charg--d-affaire {
     background: #e3f2fd;
     color: #1e88e5;
+}
+
+.user-role-badge.charg--d--tude {
+    background: #f3e5f5;
+    color: #8e24aa;
+}
+
+.user-role-badge.technicien {
+    background: #fff3e0;
+    color: #f57c00;
 }
 
 /* User Permissions */

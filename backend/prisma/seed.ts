@@ -76,43 +76,34 @@ async function main() {
         },
     });
 
-    const managerRole = await prisma.role.upsert({
-        where: { name: 'Manager' },
+    const chargeAffaireRole = await prisma.role.upsert({
+        where: { name: "Chargé d'affaire" },
         update: {},
         create: {
-            name: 'Manager',
-            description: 'Business manager overseeing POI file operations',
+            name: "Chargé d'affaire",
+            description: "Chargé d'affaire responsable des opérations",
         },
     });
 
-    const studyManagerRole = await prisma.role.upsert({
-        where: { name: 'Study Manager' },
+    const chargeEtudeRole = await prisma.role.upsert({
+        where: { name: "Chargé d'étude" },
         update: {},
         create: {
-            name: 'Study Manager',
-            description: 'Manager responsible for study validation',
+            name: "Chargé d'étude",
+            description: "Chargé d'étude responsable de la validation des études",
         },
     });
 
-    const technicianRole = await prisma.role.upsert({
-        where: { name: 'Technician' },
+    const technicienRole = await prisma.role.upsert({
+        where: { name: 'Technicien' },
         update: {},
         create: {
-            name: 'Technician',
-            description: 'Field technician working on POI files',
+            name: 'Technicien',
+            description: 'Technicien de terrain travaillant sur les dossiers',
         },
     });
 
-    const viewerRole = await prisma.role.upsert({
-        where: { name: 'Viewer' },
-        update: {},
-        create: {
-            name: 'Viewer',
-            description: 'Read-only access to POI files and reports',
-        },
-    });
-
-    console.log('✅ Created 5 roles');
+    console.log('✅ Created 4 roles');
 
     // 3. Assign Permissions to Roles
     console.log('Assigning permissions to roles...');
@@ -136,83 +127,62 @@ async function main() {
         });
     }
 
-    // Manager permissions
-    const managerPermissions = allPermissions.filter((p: { resource: string; action: string }) => ['poi_files', 'clients', 'projects', 'reports'].includes(p.resource) &&
+    // Chargé d'affaire permissions
+    const chargeAffairePermissions = allPermissions.filter((p: { resource: string; action: string }) => ['poi_files', 'clients', 'projects', 'reports'].includes(p.resource) &&
         ['create', 'read', 'update', 'assign', 'export'].includes(p.action)
     );
-    for (const permission of managerPermissions) {
+    for (const permission of chargeAffairePermissions) {
         await prisma.rolePermission.upsert({
             where: {
                 roleId_permissionId: {
-                    roleId: managerRole.id,
+                    roleId: chargeAffaireRole.id,
                     permissionId: permission.id,
                 },
             },
             update: {},
             create: {
-                roleId: managerRole.id,
+                roleId: chargeAffaireRole.id,
                 permissionId: permission.id,
             },
         });
     }
 
-    // Study Manager permissions
-    const studyManagerPermissions = allPermissions.filter((p: { resource: string; action: string }) =>
+    // Chargé d'étude permissions
+    const chargeEtudePermissions = allPermissions.filter((p: { resource: string; action: string }) =>
         ['poi_files', 'reports'].includes(p.resource) &&
         ['read', 'update', 'export'].includes(p.action)
     );
-    for (const permission of studyManagerPermissions) {
+    for (const permission of chargeEtudePermissions) {
         await prisma.rolePermission.upsert({
             where: {
                 roleId_permissionId: {
-                    roleId: studyManagerRole.id,
+                    roleId: chargeEtudeRole.id,
                     permissionId: permission.id,
                 },
             },
             update: {},
             create: {
-                roleId: studyManagerRole.id,
+                roleId: chargeEtudeRole.id,
                 permissionId: permission.id,
             },
         });
     }
 
-    // Technician permissions
-    const technicianPermissions = allPermissions.filter((p: { resource: string; action: string }) =>
+    // Technicien permissions
+    const technicienPermissions = allPermissions.filter((p: { resource: string; action: string }) =>
         p.resource === 'poi_files' && ['read', 'update'].includes(p.action)
     );
-    for (const permission of technicianPermissions) {
+    for (const permission of technicienPermissions) {
         await prisma.rolePermission.upsert({
             where: {
                 roleId_permissionId: {
-                    roleId: technicianRole.id,
+                    roleId: technicienRole.id,
                     permissionId: permission.id,
                 },
             },
             update: {},
             create: {
-                roleId: technicianRole.id,
-                permissionId: permission.id,
-            },
-        });
-    }
-
-    // Viewer permissions (read-only)
-    const viewerPermissions = allPermissions.filter((p: { resource: string; action: string }) =>
-        ['poi_files', 'reports', 'clients', 'projects'].includes(p.resource) &&
-        p.action === 'read'
-    );
-    for (const permission of viewerPermissions) {
-        await prisma.rolePermission.upsert({
-            where: {
-                roleId_permissionId: {
-                    roleId: viewerRole.id,
-                    permissionId: permission.id,
-                },
-            },
-            update: {},
-            create: {
-                roleId: viewerRole.id,
+                roleId: technicienRole.id,
                 permissionId: permission.id,
             },
         });
@@ -313,7 +283,7 @@ async function main() {
     console.log('\n🎉 Database seeding completed successfully!\n');
     console.log('📊 Summary:');
     console.log(`   - ${permissions.length} permissions`);
-    console.log('   - 5 roles with assigned permissions');
+    console.log('   - 4 roles with assigned permissions');
     console.log(`   - ${stages.length} POI processing stages`);
     console.log('   - 1 admin user');
     console.log('   - 2 sample regions');

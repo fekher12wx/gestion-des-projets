@@ -23,7 +23,7 @@ export const usePermission = () => {
 
         // Define role-based permissions
         const rolePermissions: Record<string, Permission[]> = {
-            'Manager': [
+            "Chargé d'affaire": [
                 { resource: 'poi_files', action: 'create' },
                 { resource: 'poi_files', action: 'read' },
                 { resource: 'poi_files', action: 'update' },
@@ -38,7 +38,7 @@ export const usePermission = () => {
                 { resource: 'reports', action: 'read' },
                 { resource: 'reports', action: 'export' },
             ],
-            'Study Manager': [
+            "Chargé d'étude": [
                 { resource: 'poi_files', action: 'read' },
                 { resource: 'poi_files', action: 'update' },
                 { resource: 'projects', action: 'read' },
@@ -46,16 +46,9 @@ export const usePermission = () => {
                 { resource: 'reports', action: 'read' },
                 { resource: 'reports', action: 'export' },
             ],
-            'Technician': [
+            'Technicien': [
                 { resource: 'poi_files', action: 'read' },
                 { resource: 'poi_files', action: 'update' },
-                { resource: 'projects', action: 'read' },
-                { resource: 'regions', action: 'read' },
-            ],
-            'Viewer': [
-                { resource: 'poi_files', action: 'read' },
-                { resource: 'reports', action: 'read' },
-                { resource: 'clients', action: 'read' },
                 { resource: 'projects', action: 'read' },
                 { resource: 'regions', action: 'read' },
             ],

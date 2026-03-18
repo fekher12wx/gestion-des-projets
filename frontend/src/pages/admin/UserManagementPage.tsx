@@ -182,6 +182,7 @@ const UserManagementPage: React.FC = () => {
             <div className="user-list">
                 {users.map((user) => {
                     const isAdminUser = ['Admin', 'admin', 'ADMIN'].includes(user.role?.name || '');
+                    const roleClass = isAdminUser ? 'admin' : (user.role?.name || '').toLowerCase().replace(/[^a-z]/g, '-');
                     return (
                         <div key={user.id} className={`user-card ${saving === user.id ? 'saving' : ''}`}>
                             <div className="user-info">
@@ -191,7 +192,7 @@ const UserManagementPage: React.FC = () => {
                                 <div className="user-details">
                                     <h3>{user.firstName} {user.lastName}</h3>
                                     <p className="user-email">{user.email}</p>
-                                    <span className={`user-role-badge ${isAdminUser ? 'admin' : 'viewer'}`}>
+                                    <span className={`user-role-badge ${roleClass}`}>
                                         {user.role?.name || 'N/A'}
                                     </span>
                                 </div>

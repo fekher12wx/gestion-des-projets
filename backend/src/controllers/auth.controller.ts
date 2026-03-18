@@ -38,17 +38,17 @@ export class AuthController {
                 return;
             }
 
-            // Get default role (Viewer) if no role specified
+            // Get default role (Technicien) if no role specified
             let finalRoleId = roleId;
             if (!finalRoleId) {
-                const viewerRole = await prisma.role.findUnique({
-                    where: { name: 'Viewer' },
+                const defaultRole = await prisma.role.findUnique({
+                    where: { name: 'Technicien' },
                 });
-                if (!viewerRole) {
+                if (!defaultRole) {
                     res.status(500).json({ error: 'Default role not found' });
                     return;
                 }
-                finalRoleId = viewerRole.id;
+                finalRoleId = defaultRole.id;
             }
 
             // Hash password and create user
